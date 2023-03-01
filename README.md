@@ -1,10 +1,10 @@
-# Baseline system for DCASE 2022 task 6, subtask A
+# Baseline system for DCASE 2023 task 6, subtask A
 
 This repository contains the baseline system for the DCASE 2022 challenge task 6A on audio captioning.
 
 The main model is composed of a transformer encoder-decoder, that autoregressively models captions conditionally to VGGish embeddings.
 
-For more information, please refer to the corresponding [DCASE subtask page](https://dcase.community/challenge2022/task-automatic-audio-captioning).
+For more information, please refer to the corresponding [DCASE subtask page](https://dcase.community/challenge2023/task-automatic-audio-captioning).
 
 ----
 
@@ -32,10 +32,10 @@ For more information, please refer to the corresponding [DCASE subtask page](htt
 The first step in running the baseline system is to clone this repository on your computer:
 
 ````shell script
-$ git clone git@github.com:felixgontier/dcase-2022-baseline.git
+$ git clone git@github.com:felixgontier/dcase-2023-baseline.git
 ````
 
-This operation will create a `dcase-2022-baseline` directory at the current location, with the contents of this repository. The `dcase-2022-baseline` will be referred to as the root directory in the rest of this readme.
+This operation will create a `dcase-2023-baseline` directory at the current location, with the contents of this repository. The `dcase-2023-baseline` will be referred to as the root directory in the rest of this readme.
 
 Next, a recent version of PyTorch is required to run the baseline.
 
@@ -48,6 +48,8 @@ Other required packages can be installed using Pip by running the following comm
 $ python3.7 -m venv env/ # Optionally create a virtual environment
 $ pip install -r requirements_pip.txt
 ````
+
+This year, the baseline reuses an audio encoder trained as part of task 6B on audio retrieval. The checkpoint can be downloaded [here]() and should be placed in the root directory.
 
 Lastly, the [caption-evaluation-tools](https://github.com/audio-captioning/caption-evaluation-tools) is needed for evaluation.
 
@@ -91,53 +93,17 @@ Specifically, the directory structure should be as follows from the baseline roo
 
 ### Data pre-processing
 
-Pre-processing operations are implemented in `clotho_preprocessing.py`. The pre-processing utilities are also available as a [standalone](https://github.com/felixgontier/dcase-2022-preprocessing).
+Pre-processing operations are implemented in `clotho_dataset.py` and `audio_logmels.py`. These are the same as for the [task 6B baseline](https://github.com/xieh97/dcase2023-audio-retrieval), except for the addition of the Clotho-testing subset handling.
 
 Dataset preparation is done by running the following command:
 
 ````shell script
-$ python clotho_preprocessing.py --cfg dcb_data
+$ python clotho_dataset.py
+$ python audio_logmels.py
 ````
 
-The script outputs a `<file_name>_<caption_id>.npy` file for each ground truth caption of each audio file in the dataset. Each output file contains a Numpy record array with the following fields:
+The script outputs `<split>_audio_logmels.hdf5` and `<split>_text.csv` files in the `data` subdirectory.
 
- * `file_name`: Name of the source audio file.
- * `vggish_embeddings`: VGGish embeddings extracted for 1s audio frames with 1s interval.
- * `caption`: The corresponding caption, with all punctuation removed and all lowercase.
-
-Output directories follow the same structure as the inputs:
-
-    data/
-     | - clotho_v2_vggish/
-     |   | - development/
-     |   |   | - *.npy
-     |   | - validation/
-     |   |   | - *.npy
-     |   | - evaluation/
-     |   |   | - *.npy
-     |   | - test/
-     |   |   | - *.npy
-
-### Pre-processing parameters
-
-Data pre-processing relies on settings in the `data_settings/dcb_data.yaml` file.
-
-    data:
-      root_path: 'data'
-      input_path: 'clotho_v2'
-      output_path: 'clotho_v2_vggish'
-      splits:
-        - development
-        - validation
-        - evaluation
-        - test
-
-The settings are the following:
-
- * `root_path` (str): Path to the root data directory.
- * `input_path` (str): Sub-path of `root_path` with unprocessed data.
- * `output_path` (str): Sub-path of `root_path` where pre-processed data should be saved. If it does not exist, the directory will be created.
- * `splits` (list(str)): Data splits, each corresponding to a sub-directory of `input_path` and `output_path`.
 
 ----
 
@@ -158,7 +124,7 @@ After training, model weights are saved to a `outputs/<exp_name>_out/` directory
 
 ### Evaluation with pre-trained weights
 
- 1. Download pre-trained weights from [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6352699.svg)](https://doi.org/10.5281/zenodo.6352699)
+ 1. Download pre-trained weights from [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7688773.svg)](https://doi.org/10.5281/zenodo.7688773)
  2. In `exp_settings/dcb.yaml`, change the `lm/eval_model` setting to `/path/to/dcase_baseline_pre_trained.bin`, with the correct path to the downloaded file.
  3. Set the `workflow/train` and `workflow/validate` to `false`, and `workflow/evaluate` and/or `workflow/infer` to `true`.
  4. Run the evaluation and/or inference.
@@ -174,14 +140,11 @@ $ python main.py --exp dcb
 Experiment settings described in the `exp_settings/dcb.yaml` file are:
 
     adapt:
-      audio_emb_size: 128
+      audio_emb_size: 2048
       nb_layers: 1
     data:
       root_dir: data
-      features_dir: clotho_v2_vggish
-      input_field_name: vggish_embeddings
-      output_field_name: caption
-      max_audio_len: 32
+      max_audio_len: 2048
       max_caption_tok_len: 64
     lm:
       config: # Model parameters
@@ -196,7 +159,7 @@ Experiment settings described in the `exp_settings/dcb.yaml` file are:
         dropout: 0.1
         encoder_attention_heads: 12
         encoder_ffn_dim: 3072
-        encoder_layers: 6
+        encoder_layers: 0
         vocab_size: 50265
       generation: # Generation parameters
         early_stopping: true
@@ -249,9 +212,6 @@ The `adaptation` block defines a small adaptation network before the transformer
 The `data` block contains settings related to the dataset.
 
  * `root_dir` (str): Path to the data root directory.
- * `features_dir` (str): Subdirectory of `root_dir` where the current dataset is located.
- * `input_field_name` (str): Name of the input field in Numpy rec-arrays of data examples.
- * `output_field_name` (str): Name of the output field in Numpy rec-arrays of data examples.
  * `max_audio_len` and `max_caption_tok_len` (int): The data loader pads each example audio and tokenized caption to a set duration for batching. Provided values are adapted to the VGGish representation and BART tokenization of the baseline.
 
 ### Language model settings

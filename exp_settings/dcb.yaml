@@ -3,9 +3,6 @@ adapt:
   nb_layers: 1
 data:
   root_dir: data
-  features_dir: clotho_v2_vggish
-  input_field_name: vggish_embeddings
-  output_field_name: caption
   max_audio_len: 2048
   max_caption_tok_len: 64
 lm:
@@ -59,7 +56,7 @@ training:
   save_steps: 1000
   seed: 0
 workflow:
-  train: false
-  validate: false
-  evaluate: false
-  infer: true
+  train: true
+  validate: true
+  evaluate: true
+  infer: false

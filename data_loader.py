@@ -27,8 +27,6 @@ class AACDataset(torch.utils.data.Dataset):
         
         self.max_audio_len = settings['data']['max_audio_len']
         self.max_caption_tok_len = settings['data']['max_caption_tok_len']
-        self.input_name = settings['data']['input_field_name']
-        self.output_name = settings['data']['output_field_name']
         
         self.tokenizer = tokenizer
         
@@ -130,7 +128,6 @@ def default_data_collator(features: List[InputDataClass]) -> Dict[str, torch.Ten
     return batch
 
 def get_dataset(split, settings, tokenizer):
-    #data_dir = Path(settings['data']['root_dir'], settings['data']['features_dir'])
     data_dir = Path(settings['data']['root_dir'])
     if split == 'training' and settings['workflow']['validate']:
         return AACDataset(settings, data_dir, 'development', tokenizer), \
