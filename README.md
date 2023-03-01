@@ -1,8 +1,8 @@
 # Baseline system for DCASE 2023 task 6, subtask A
 
-This repository contains the baseline system for the DCASE 2022 challenge task 6A on audio captioning.
+This repository contains the baseline system for the DCASE 2023 challenge task 6A on audio captioning.
 
-The main model is composed of a transformer encoder-decoder, that autoregressively models captions conditionally to VGGish embeddings.
+The main model is composed of a convolutional encoder and a transformer decoder, that autoregressively models captions conditionally to log-mel spectrograms. This year, the baseline reuses the audio encoder trained as part of the [task 6B baseline](https://github.com/xieh97/dcase2023-audio-retrieval) on audio retrieval.
 
 For more information, please refer to the corresponding [DCASE subtask page](https://dcase.community/challenge2023/task-automatic-audio-captioning).
 
@@ -48,8 +48,6 @@ Other required packages can be installed using Pip by running the following comm
 $ python3.7 -m venv env/ # Optionally create a virtual environment
 $ pip install -r requirements_pip.txt
 ````
-
-This year, the baseline reuses an audio encoder trained as part of task 6B on audio retrieval. The checkpoint can be downloaded [here]() and should be placed in the root directory.
 
 Lastly, the [caption-evaluation-tools](https://github.com/audio-captioning/caption-evaluation-tools) is needed for evaluation.
 
