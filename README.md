@@ -49,6 +49,10 @@ $ python3.7 -m venv env/ # Optionally create a virtual environment
 $ pip install -r requirements_pip.txt
 ````
 
+The audio encoder of the baseline system is initialized with trained weights from the retrieval subtask baseline. The corresponding checkpoint `audio_encoder.pth` is hosted on [Zenodo](https://zenodo.org/record/7752975).
+
+ 1. Download `audio_encoder.pth` from the Zenodo repository and place it in the root baseline directory.
+
 Lastly, the [caption-evaluation-tools](https://github.com/audio-captioning/caption-evaluation-tools) is needed for evaluation.
 
  1. Download and extract the repository in the baseline root directory.
